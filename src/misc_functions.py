@@ -252,7 +252,8 @@ def get_example_params(example_index):
     # Pick one of the examples
     example_list = (('../input_images/snake.png', 56),
                     ('../input_images/cat_dog.png', 243),
-                    ('../input_images/spider.png', 72))
+                    ('../input_images/spider.png', 72),
+                    ('../input_images/abrasion_sample.jpg', 0),)
     img_path = example_list[example_index][0]
     target_class = example_list[example_index][1]
     file_name_to_export = img_path[img_path.rfind('/')+1:img_path.rfind('.')]
