@@ -14,6 +14,7 @@ from matplotlib import pyplot as plt
 import torch
 from torch.autograd import Variable
 from torchvision import models
+import torch.nn as nn
 
 
 def convert_to_grayscale(im_as_arr):
@@ -235,7 +236,7 @@ def get_positive_negative_saliency(gradient):
     return pos_saliency, neg_saliency
 
 
-def get_example_params(example_index):
+def get_example_params(example_index, weights_path):
     """
         Gets used variables for almost all visualizations, like the image, model etc.
 
@@ -253,17 +254,24 @@ def get_example_params(example_index):
     example_list = (('../input_images/snake.png', 56),
                     ('../input_images/cat_dog.png', 243),
                     ('../input_images/spider.png', 72),
-                    ('../input_images/abrasion_sample.jpg', 0),)
+                    ('../input_images/abrasion_sample.png', 0),)
     img_path = example_list[example_index][0]
     target_class = example_list[example_index][1]
     file_name_to_export = img_path[img_path.rfind('/')+1:img_path.rfind('.')]
     # Read image
     original_image = Image.open(img_path).convert('RGB')
+    resized_original_img = original_image.resize((224, 224), Image.LANCZOS) # ADDED THIS
     # Process image
-    prep_img = preprocess_image(original_image)
+    prep_img = preprocess_image(resized_original_img)
     # Define model
-    pretrained_model = models.alexnet(pretrained=True)
-    return (original_image,
+    # pretrained_model = models.alexnet(pretrained=True)
+
+    pretrained_model = models.convnext_base(weights="DEFAULT")
+    pretrained_model.classifier[2] = nn.Linear(in_features=1024,
+                                    out_features=260)
+    pretrained_model.load_state_dict(torch.load("../../../School/thesis/code/Classifiers-PyTorch-base-new/weights/{}.pth".format(weights_path)))
+    
+    return (resized_original_img,
             prep_img,
             target_class,
             file_name_to_export,

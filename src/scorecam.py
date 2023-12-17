@@ -25,7 +25,8 @@ class CamExtractor():
         """
         conv_output = None
         for module_pos, module in self.model.features._modules.items():
-            x = module(x)  # Forward
+            if module_pos != "classifier":
+                x = module(x)  # Forward
             if int(module_pos) == self.target_layer:
                 conv_output = x  # Save the convolution output on that layer
         return conv_output, x
@@ -36,10 +37,17 @@ class CamExtractor():
         """
         # Forward pass on the convolutions
         conv_output, x = self.forward_pass_on_convolutions(x)
-        x = x.view(x.size(0), -1)  # Flatten
         # Forward pass on the classifier
+        x = F.adaptive_avg_pool2d(x, (1,1))
         x = self.model.classifier(x)
         return conv_output, x
+    
+        # # Forward pass on the convolutions
+        # conv_output, x = self.forward_pass_on_convolutions(x)
+        # x = x.view(x.size(0), -1)  # Flatten
+        # # Forward pass on the classifier
+        # x = self.model.classifier(x)
+        # return conv_output, x
 
 
 class ScoreCam():
@@ -86,11 +94,11 @@ class ScoreCam():
 
 if __name__ == '__main__':
     # Get params
-    target_example = 0  # Snake
+    target_example = 3  # Snake
     (original_image, prep_img, target_class, file_name_to_export, pretrained_model) =\
-        get_example_params(target_example)
+        get_example_params(target_example, "2023-07-08 04_05_34.703066_train - SD260 - ConvNeXt-Base/120")
     # Score cam
-    score_cam = ScoreCam(pretrained_model, target_layer=11)
+    score_cam = ScoreCam(pretrained_model, target_layer=7) # was originally 11 for alexnet
     # Generate cam mask
     cam = score_cam.generate_cam(prep_img, target_class)
     # Save mask
